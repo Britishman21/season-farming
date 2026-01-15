@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sunlit Valley Crop Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <h1>Sunlit Valley Crop Planner</h1>
+    <p>Filter by season, profit, and grow time. Value column shows base sell price (not seed cost). Click headers to sort.</p>
+
+    <div class="nav" id="nav"></div>
+
+    <div class="controls">
+      <div class="control">
+        <label for="search">Search crops</label>
+        <input id="search" type="search" placeholder="e.g. Tomato, Pepper, Berry" />
+      </div>
+      <div class="control">
+        <label for="seasonDays">Season length (days)</label>
+        <input id="seasonDays" type="number" min="1" step="1" value="30" />
+      </div>
+      <div class="control">
+        <label for="plots">Plots / tiles available</label>
+        <input id="plots" type="number" min="1" step="1" value="100" />
+      </div>
+      <div class="control">
+        <label for="maxGrow">Max grow time (days)</label>
+        <input id="maxGrow" type="number" min="0" step="1" value="0" />
+      </div>
+      <div class="control">
+        <label>Seasons</label>
+        <div class="season-chips" id="seasonChips"></div>
+      </div>
+      <div class="control">
+        <label>Fertilizers</label>
+        <div class="season-chips" id="fertilizerChips"></div>
+      </div>
+      <div class="control">
+        <label>Options</label>
+        <div class="season-chips">
+          <div class="chip" id="seedCostToggle">Include Seed Cost</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="cropTable">
+        <thead>
+          <tr>
+            <th data-key="crop">Crop <span class="sort-indicator">⇅</span></th>
+            <th data-key="seasons">Seasons <span class="sort-indicator">⇅</span></th>
+            <th data-key="seedCost">Seed Cost <span class="sort-indicator">⇅</span></th>
+            <th data-key="sellPrice">Sell Price <span class="sort-indicator">⇅</span></th>
+            <th data-key="adjustedGrowTime">Grow Days <span class="sort-indicator">⇅</span></th>
+            <th data-key="adjustedYield">Avg Yield <span class="sort-indicator">⇅</span></th>
+            <th data-key="harvestsPerSeason">harvests Per Season <span class="sort-indicator">⇅</span></th>
+            <th data-key="profitPerDay">Profit / Day <span class="sort-indicator">⇅</span></th>
+            <th data-key="netProfitPerSeason">Net Profit / Season <span class="sort-indicator">⇅</span></th>
+            <th data-key="seasonProfitTotal">Net Profit (all plots) <span class="sort-indicator">⇅</span></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="footer">Tip: combine filters (e.g., Summer + profit ≥ 10 + grow ≤ 6) to surface fast, lucrative crops.</div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="utils.js"></script>
+  <script src="site-footer.js"></script>
+  <script src="storage-notice.js"></script>
+  <script>
+    const { crops: cropsData, seasons, processorsList } = window.sunlitData;
+    const { fmt, renderNav } = window.siteUtils;
+    const rawData = cropsData;
+    const seasonsAll = Object.keys(seasons);
+    const state = {
+      search: '',
+      maxGrow: 0,
+      seasonDays: 30,
+      plots: 100,
+      seasons: new Set(),
+      fertilizers: new Set(),
+      includeSeedCost: false,
+      sortBy: 'crop',
+      sortDir: 'asc',
+      favorites: new Set(),
+    };
+
+    // Load favorites from localStorage
+    function loadFavorites() {
+      const saved = localStorage.getItem('sunlit-favorites');
+      if (saved) {
+        try {
+          state.favorites = new Set(JSON.parse(saved));
+        } catch (e) {
+          // no-op
+        }
+      }
+    }
+
+    function saveFavorites() {
+      localStorage.setItem('sunlit-favorites', JSON.stringify(Array.from(state.favorites)));
+    }
+
+    function toggleFavorite(crop) {
+      if (state.favorites.has(crop)) {
+        state.favorites.delete(crop);
+      } else {
+        state.favorites.add(crop);
+      }
+      saveFavorites();
+      renderTable();
+    }
+
+    function parseSeasons(str) {
+      return str.split(',').map(s => s.trim());
+    }
+
+    // Create base rows with just the season parsing
+    const rows = rawData.map(item => ({
+      ...item,
+      seasonList: parseSeasons(item.seasons),
+    }));
+
+    const tableBody = document.querySelector('#cropTable tbody');
+
+    const seasonMap = seasons;
+
+    function renderSeasonsBadges(list) {
+      return list.map(s => `<span class="pill">${seasonMap[s] || s}</span>`).join(' ');
+    }
+
+    function updateSortIndicators() {
+      document.querySelectorAll('th[data-key]').forEach(th => {
+        const indicator = th.querySelector('.sort-indicator');
+        const isActive = th.dataset.key === state.sortBy;
+        th.classList.toggle('sort-active', isActive);
+        if (indicator) indicator.textContent = isActive ? (state.sortDir === 'asc' ? '▲' : '▼') : '⇅';
+      });
+    }
+
+    function renderTable() {
+      const augment = row => {
+        // Apply fertilizer effects
+        let growTimeReduction = 0;
+        let yieldBonus = 0;
+        const { fertilizers: fertilizerData } = window.sunlitData;
+        state.fertilizers.forEach(fertKey => {
+          if (fertilizerData[fertKey]) {
+            growTimeReduction += fertilizerData[fertKey].growTimeReduction;
+            yieldBonus += fertilizerData[fertKey].yieldBonus;
+          }
+        });
+        
+        // Apply fertilizer effects to grow time and yield
+        const adjustedGrowTime = Math.max(1, row.growTime - growTimeReduction);
+        const adjustedYield = row.avgYield * (1 + yieldBonus);
+        
+        // Calculate seed cost (0 if excluded)
+        const effectiveSeedCost = state.includeSeedCost ? row.seedCost : 0;
+        
+        // Calculate profit per day: (sellPrice * adjustedYield - effectiveSeedCost) / adjustedGrowTime
+        const profitPerDay = ((row.sellPrice * adjustedYield) - effectiveSeedCost) / adjustedGrowTime;
+        // Calculate harvests per season (realistic count)
+        const harvestsPerSeason = Math.floor(state.seasonDays / adjustedGrowTime);
+        // Calculate profit per harvest
+        const profitPerHarvest = (row.sellPrice * adjustedYield) - effectiveSeedCost;
+        // Calculate net profit per season (per plot)
+        const netProfitPerSeason = harvestsPerSeason * profitPerHarvest;
+        
+        return {
+          ...row,
+          adjustedGrowTime,
+          adjustedYield,
+          profitPerDay,
+          harvestsPerSeason,
+          profitPerHarvest,
+          netProfitPerSeason,
+          seasonProfitTotal: netProfitPerSeason * state.plots,
+        };
+      };
+
+      const filtered = rows.filter(row => {
+        const matchesSearch = row.crop.toLowerCase().includes(state.search.toLowerCase());
+        const matchesGrow = state.maxGrow ? row.growTime <= state.maxGrow : true;
+        const matchesSeason = state.seasons.size
+          ? row.seasonList.some(s => state.seasons.has(s))
+          : true;
+        return matchesSearch && matchesGrow && matchesSeason;
+      }).map(augment);
+
+      filtered.sort((a, b) => {
+        const dir = state.sortDir === 'asc' ? 1 : -1;
+        if (state.sortBy === 'crop' || state.sortBy === 'seasons') {
+          return a[state.sortBy].localeCompare(b[state.sortBy]) * dir;
+        }
+        return (a[state.sortBy] - b[state.sortBy]) * dir;
+      });
+
+      const rowsHtml = filtered.map(row => {
+        const profitClass = row.profitPerDay >= 15 ? 'pill tag-gold' : row.profitPerDay >= 10 ? 'pill tag-green' : 'pill';
+        const growClass = row.adjustedGrowTime <= 4 ? 'pill tag-green' : row.adjustedGrowTime >= 8 ? 'pill tag-red' : 'pill';
+        const isFav = state.favorites.has(row.crop) ? '★' : '☆';
+        const favStyle = state.favorites.has(row.crop) ? 'color: var(--accent); cursor: pointer; font-size: 16px;' : 'cursor: pointer; opacity: 0.5; font-size: 16px;';
+        return `<tr>
+          <td><span style="${favStyle}" class="fav-toggle" data-crop="${row.crop}" title="Toggle favorite">${isFav}</span> <strong>${row.crop}</strong></td>
+          <td>${renderSeasonsBadges(row.seasonList)}</td>
+          <td class="fade">${fmt(row.seedCost)}</td>
+          <td class="fade">${fmt(row.sellPrice)}</td>
+          <td><span class="${growClass}"><span>Grow</span>${row.adjustedGrowTime}d</span></td>
+          <td class="fade">${fmt(row.adjustedYield)}</td>
+          <td class="fade">${row.harvestsPerSeason}×</td>
+          <td><span class="${profitClass}"><span>P/D</span>${fmt(row.profitPerDay)}</span></td>
+          <td class="fade">${fmt(row.netProfitPerSeason)}</td>
+          <td class="fade">${fmt(row.seasonProfitTotal)}</td>
+        </tr>`;
+      }).join('');
+
+      tableBody.innerHTML = rowsHtml || '<tr><td colspan="10" class="fade">No crops match the filters.</td></tr>';
+      updateSortIndicators();
+      attachFavHandlers();
+    }
+
+    function renderSeasonChips() {
+      const wrap = document.getElementById('seasonChips');
+      wrap.innerHTML = seasonsAll.map(code => {
+        const active = state.seasons.has(code) ? 'active' : '';
+        return `<div class="chip ${active}" data-season="${code}">${seasonMap[code]}</div>`;
+      }).join('');
+    }
+
+    function renderFertilizerChips() {
+      const wrap = document.getElementById('fertilizerChips');
+      const { fertilizers } = window.sunlitData;
+      wrap.innerHTML = Object.keys(fertilizers).map(key => {
+        const fert = fertilizers[key];
+        const active = state.fertilizers.has(key) ? 'active' : '';
+        return `<div class="chip ${active}" data-fertilizer="${key}">${fert.label}</div>`;
+      }).join('');
+    }
+
+    function toggleSeason(code) {
+      if (state.seasons.has(code)) {
+        state.seasons.delete(code);
+      } else {
+        state.seasons.add(code);
+      }
+      renderSeasonChips();
+      attachSeasonChipEvents();
+      renderTable();
+    }
+
+    function toggleFertilizer(key) {
+      if (state.fertilizers.has(key)) {
+        // If clicking active fertilizer, deselect it
+        state.fertilizers.delete(key);
+      } else {
+        // Clear all other fertilizers and select only this one
+        state.fertilizers.clear();
+        state.fertilizers.add(key);
+      }
+      renderFertilizerChips();
+      attachFertilizerChipEvents();
+      renderTable();
+    }
+
+    function attachSeasonChipEvents() {
+      document.querySelectorAll('[data-season]').forEach(chip => {
+        chip.addEventListener('click', () => toggleSeason(chip.dataset.season));
+      });
+    }
+
+    function attachFertilizerChipEvents() {
+      document.querySelectorAll('[data-fertilizer]').forEach(chip => {
+        chip.addEventListener('click', () => toggleFertilizer(chip.dataset.fertilizer));
+      });
+    }
+
+    function attachSortHandlers() {
+      document.querySelectorAll('th[data-key]').forEach(th => {
+        th.addEventListener('click', () => {
+          const key = th.dataset.key;
+          if (state.sortBy === key) {
+            state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+          } else {
+            state.sortBy = key;
+            state.sortDir = key === 'crop' || key === 'seasons' ? 'asc' : 'desc';
+          }
+          renderTable();
+        });
+      });
+    }
+
+    function attachFavHandlers() {
+      document.querySelectorAll('.fav-toggle').forEach(el => {
+        el.addEventListener('click', e => {
+          e.stopPropagation();
+          toggleFavorite(el.dataset.crop);
+        });
+      });
+    }
+
+    function initControls() {
+      document.getElementById('search').addEventListener('input', e => {
+        state.search = e.target.value;
+        renderTable();
+      });
+      document.getElementById('maxGrow').addEventListener('input', e => {
+        state.maxGrow = Number(e.target.value) || 0;
+        renderTable();
+      });
+      document.getElementById('seasonDays').addEventListener('input', e => {
+        state.seasonDays = Math.max(1, Number(e.target.value) || 30);
+        renderTable();
+      });
+      document.getElementById('plots').addEventListener('input', e => {
+        state.plots = Math.max(1, Number(e.target.value) || 1);
+        renderTable();
+      });
+    }
+
+    function toggleSeedCost() {
+      state.includeSeedCost = !state.includeSeedCost;
+      const toggle = document.getElementById('seedCostToggle');
+      if (state.includeSeedCost) {
+        toggle.classList.add('active');
+      } else {
+        toggle.classList.remove('active');
+      }
+      renderTable();
+    }
+
+    // Initialize UI
+    loadFavorites();
+    renderNav(processorsList, 'planner');
+    renderSeasonChips();
+    attachSeasonChipEvents();
+    renderFertilizerChips();
+    attachFertilizerChipEvents();
+    document.getElementById('seedCostToggle').addEventListener('click', toggleSeedCost);
+    attachSortHandlers();
+    initControls();
+    renderTable();
+    attachFavHandlers();
+  </script>
+</body>
+</html>

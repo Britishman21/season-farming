@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About & FAQ | Sunlit Valley</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .about-content { max-width: 800px; }
+    .faq-item { margin-bottom: 20px; }
+    .faq-item h3 { margin: 12px 0 6px; color: var(--text); }
+    .faq-item p { margin: 0; color: var(--muted); line-height: 1.6; }
+    .code-block { background: var(--card); padding: 12px; border-radius: 8px; margin: 8px 0; font-family: monospace; font-size: 12px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <div class="shell about-content">
+    <h1>About Sunlit Valley</h1>
+    <p>A farming planner and processor calculator for the Sunlit Valley modpack.</p>
+
+    <div class="nav" id="nav"></div>
+
+    <h2 style="margin-top: 32px;">What is this site?</h2>
+    <p>This is a crop and processor guide to help you optimize farm layouts and processing chains in Sunlit Valley. Sort by profit, grow time, or season to find the best crops for your goals.</p>
+
+    <h2>How is Profit / Day calculated?</h2>
+    <p><strong>Planner:</strong> Profit / Day = (Sell Price × Avg Yield − Seed Cost*) / Grow Days</p>
+    <p><strong>Processors:</strong> Profit / Day = (Final Price − Start Price) / Processing Days</p>
+    <p style="font-size: 13px; margin-top: 8px;"><em>*By default, seed cost is excluded from calculations. See "Include Seed Cost" below.</em></p>
+
+    <h2>What are the toggle options?</h2>
+    
+    <div class="faq-item">
+      <h3>Include Seed Cost</h3>
+      <p>By default, seed cost is <strong>excluded</strong> from profit calculations because many seeds can be crafted for free in Sunlit Valley. When this option is OFF (default), profits show the value of harvested crops only.</p>
+      <p style="margin-top: 8px;">Toggle this ON if you're buying seeds from shops to see realistic profit after seed costs. This is especially important for expensive seeds like Peanut (512) or Bell Pepper (64) which can drastically reduce or eliminate profits.</p>
+      <p style="margin-top: 8px; font-style: italic;">Tip: Compare profits with the toggle ON vs OFF to identify which crops you should craft seeds for vs which are acceptable to buy.</p>
+    </div>
+
+    <div class="faq-item">
+      <h3>Fertilizers</h3>
+      <p>Select a fertilizer to see how it affects crop stats. Only one fertilizer can be active at a time. Click an active fertilizer to deselect it.</p>
+      <ul style="margin: 8px 0; padding-left: 20px; color: var(--muted); line-height: 1.8;">
+        <li><strong>Weak Fertilizer:</strong> Reduces grow time by 1 day</li>
+        <li><strong>Strong Fertilizer:</strong> Reduces grow time by 2 days</li>
+        <li><strong>Hyper Fertilizer:</strong> Reduces grow time by 3 days</li>
+        <li><strong>Bountiful Fertilizer:</strong> Increases average yield by 25% (simulates 25% chance for +1 crop drop)</li>
+      </ul>
+      <p style="margin-top: 8px;">When a fertilizer is active, the Grow Days and Avg Yield columns update automatically, along with all profit calculations. Minimum grow time is 1 day.</p>
+    </div>
+
+    <div class="faq-item">
+      <h3>Seasons</h3>
+      <p>Filter crops by their growing seasons. Toggle multiple seasons to see all crops that can grow in any of the selected seasons. When no seasons are selected, all crops are shown.</p>
+    </div>
+
+    <h2>What do the columns mean?</h2>
+    <div class="faq-item">
+      <h3>Seed Cost</h3>
+      <p>Cost to buy one seed from a shop. By default, this is NOT subtracted from profit (toggle "Include Seed Cost" to change this).</p>
+    </div>
+    <div class="faq-item">
+      <h3>Sell Price</h3>
+      <p>What an unprocessed crop sells for at base quality. Processors increase this.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Grow Days</h3>
+      <p>Days for a crop to mature in the growing season. This value adjusts automatically when fertilizers are applied.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Avg Yield</h3>
+      <p>Average number of items produced per harvest (some crops drop multiples). This value increases when Bountiful Fertilizer is applied.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Harvests</h3>
+      <p>Number of times you can harvest this crop in the season: Season Days ÷ Grow Days (rounded down).</p>
+    </div>
+    <div class="faq-item">
+      <h3>Net Profit / Season</h3>
+      <p>Realistic total profit per plot: Number of Harvests × ((Sell Price × Avg Yield) − Seed Cost*). Accounts for the fact you can't harvest fractional times. *Seed cost only included if toggle is ON.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Net Profit (all plots)</h3>
+      <p>Total profit across all plots: Net Profit / Season × Number of Plots</p>
+    </div>
+
+    <h2>How do I use the Favorites feature?</h2>
+    <p>Click the ★ icon next to a crop name to bookmark it. Your favorites are saved locally and persist across sessions.</p>
+
+    <h2>Why are some processor rows blank?</h2>
+    <p>Some crops don't have complete processor data (e.g., Salt in pickling). Blank cells show missing values; future updates will fill them in.</p>
+
+    <h2>How often is data updated?</h2>
+    <p>Data is updated when possible. This is a community passion project maintained in my free time, so updates may be sporadic. Check the footer for the last data update date. For the most current modpack data, see the <a href="#" id="modpack-link">modpack page</a>.</p>
+    <p><em>I will update this site if and when I can—thank you for your patience!</em></p>
+
+    <h2>Can I print or export this?</h2>
+    <p>Yes! Use your browser's print function (Ctrl+P or Cmd+P) to print a stripped-down table. Or copy filtered rows and paste into a spreadsheet.</p>
+
+    <h2>Found a bug or have feedback?</h2>
+    <p>See the footer for feedback links (Discord, GitHub, etc.). Community contributions help keep data accurate.</p>
+
+    <div class="footer" style="margin-top: 32px;">Last updated: <span id="update-date">—</span></div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="utils.js"></script>
+  <script src="site-footer.js"></script>
+  <script src="storage-notice.js"></script>
+  <script>
+    const { processorsList } = window.sunlitData;
+    const { renderNav } = window.siteUtils;
+    
+    renderNav(processorsList, 'about');
+    
+    // Update the modpack link
+    if (window.sunlitData && window.sunlitData.modpackUrl) {
+      document.getElementById('modpack-link').href = window.sunlitData.modpackUrl;
+      document.getElementById('modpack-link').target = '_blank';
+    }
+    
+    // Show last update date
+    if (window.sunlitData && window.sunlitData.dataLastUpdated) {
+      document.getElementById('update-date').textContent = window.sunlitData.dataLastUpdated;
+    }
+  </script>
+</body>
+</html>

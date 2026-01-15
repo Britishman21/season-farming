@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sunlit Valley | Dehydrator (1-day)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <h1>Processor: Dehydrator (1-day)</h1>
+    <p>Dehydrator runs that finish in one day. Sort and filter by margin or speed.</p>
+
+    <div class="nav" id="nav"></div>
+
+    <div class="controls">
+      <div class="control">
+        <label for="search">Search crop</label>
+        <input id="search" type="search" placeholder="e.g. Fruit, Berry" />
+      </div>
+      <div class="control">
+        <label for="maxDays">Max days</label>
+        <input id="maxDays" type="number" min="0" step="0.1" value="0" />
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th data-key="crop">Crop <span class="sort-indicator">⇅</span></th>
+            <th data-key="days">Days <span class="sort-indicator">⇅</span></th>
+            <th data-key="startPrice">Start Price <span class="sort-indicator">⇅</span></th>
+            <th data-key="finalPrice">Final Price <span class="sort-indicator">⇅</span></th>
+            <th data-key="profit">Profit <span class="sort-indicator">⇅</span></th>
+            <th data-key="profitPerDay">Profit / Day <span class="sort-indicator">⇅</span></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="footer">All data is embedded locally; adjust filters to focus on your current goals.</div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="utils.js"></script>
+  <script src="site-footer.js"></script>
+  <script src="storage-notice.js"></script>
+  <script>
+    const { processors, processorsList } = window.sunlitData;
+    const { isNumber, fmt, renderNav } = window.siteUtils;
+    // Calculate profit and profitPerDay dynamically
+    const rows = processors.dehydrator.map(r => {
+      const profit = isNumber(r.finalPrice) && isNumber(r.startPrice) ? r.finalPrice - r.startPrice : null;
+      const profitPerDay = profit !== null && isNumber(r.days) && r.days > 0 ? profit / r.days : null;
+      return { ...r, profit, profitPerDay };
+    });
+
+    const state = {
+      search: '',
+      maxDays: 0,
+      sortBy: 'profitPerDay',
+      sortDir: 'desc',
+    };
+
+    const tbody = document.querySelector('#dataTable tbody');
+
+    function updateSortIndicators() {
+      document.querySelectorAll('th[data-key]').forEach(th => {
+        const indicator = th.querySelector('.sort-indicator');
+        const isActive = th.dataset.key === state.sortBy;
+        th.classList.toggle('sort-active', isActive);
+        if (indicator) indicator.textContent = isActive ? (state.sortDir === 'asc' ? '▲' : '▼') : '⇅';
+      });
+    }
+
+    function renderTable() {
+      const filtered = rows.filter(r => {
+        const matchesSearch = r.crop.toLowerCase().includes(state.search.toLowerCase());
+        const matchesDays = state.maxDays ? (isNumber(r.days) ? r.days <= state.maxDays : false) : true;
+        return matchesSearch && matchesDays;
+      });
+
+      filtered.sort((a, b) => {
+        const dir = state.sortDir === 'asc' ? 1 : -1;
+        const aVal = a[state.sortBy];
+        const bVal = b[state.sortBy];
+        if (isNumber(aVal) && isNumber(bVal)) return (aVal - bVal) * dir;
+        return String(aVal).localeCompare(String(bVal)) * dir;
+      });
+
+      const rowsHtml = filtered.map(r => {
+        const profitClass = isNumber(r.profitPerDay)
+          ? r.profitPerDay >= 25 ? 'pill tag-gold' : r.profitPerDay < 0 ? 'pill tag-red' : 'pill tag-green'
+          : 'pill';
+        const profitVal = isNumber(r.profitPerDay) ? fmt(r.profitPerDay) : '—';
+        const daysClass = isNumber(r.days) && r.days <= 1 ? 'pill tag-green' : 'pill';
+        return `<tr>
+          <td><strong>${r.crop}</strong></td>
+          <td><span class="${daysClass}"><span>Days</span>${isNumber(r.days) ? fmt(r.days) : '—'}</span></td>
+          <td class="fade">${fmt(r.startPrice)}</td>
+          <td class="fade">${fmt(r.finalPrice)}</td>
+          <td class="${isNumber(r.profit) && r.profit < 0 ? 'tag-red' : 'fade'}">${fmt(r.profit)}</td>
+          <td><span class="${profitClass}"><span>P/D</span>${profitVal}</span></td>
+        </tr>`;
+      }).join('');
+
+      tbody.innerHTML = rowsHtml || '<tr><td colspan="6" class="fade">No rows match the filters.</td></tr>';
+      updateSortIndicators();
+    }
+
+    function attachSortHandlers() {
+      document.querySelectorAll('th[data-key]').forEach(th => {
+        th.addEventListener('click', () => {
+          const key = th.dataset.key;
+          if (state.sortBy === key) {
+            state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+          } else {
+            state.sortBy = key;
+            state.sortDir = key === 'crop' ? 'asc' : 'desc';
+          }
+          renderTable();
+        });
+      });
+    }
+
+    function initControls() {
+      document.getElementById('search').addEventListener('input', e => { state.search = e.target.value; renderTable(); });
+      document.getElementById('maxDays').addEventListener('input', e => { state.maxDays = Number(e.target.value) || 0; renderTable(); });
+    }
+
+    renderNav(processorsList, 'dehydrator');
+    attachSortHandlers();
+    initControls();
+    renderTable();
+  </script>
+</body>
+</html>
