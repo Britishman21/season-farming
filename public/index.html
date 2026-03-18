@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sunlit Valley Crop Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+  <div class="shell">
+    <h1>Sunlit Valley Crop Planner</h1>
+    <p>Filter by season, profit, and grow time. Value column shows base sell price (not seed cost). Click headers to
+      sort.</p>
+
+    <div class="nav" id="nav"></div>
+
+    <div class="controls">
+      <div class="control">
+        <label for="search">Search crops</label>
+        <input id="search" type="search" placeholder="e.g. Tomato, Pepper, Berry" />
+      </div>
+      <div class="control">
+        <label for="maxGrow">Max grow time (days)</label>
+        <input id="maxGrow" type="number" min="0" step="1" value="0" />
+      </div>
+      <div class="control">
+        <label for="seasonDays">Season length (days)</label>
+        <input id="seasonDays" type="number" min="1" step="1" value="28" />
+      </div>
+      <div class="control">
+        <label for="plots">Plots / tiles available / Blocks</label>
+        <input id="plots" type="number" min="1" step="1" value="100" />
+      </div>
+      <div class="control">
+        <label for="fertilizer">Fertilizer benefits</label>
+        <select id="fertilizer">
+          <option value="none">None</option>
+          <option value="basic">Basic (+10% yield, -5% grow time)</option>
+          <option value="quality">Quality (+15% value, +15% yield, -10% grow time)</option>
+          <option value="deluxe">Deluxe (+30% value, +25% yield, -15% grow time)</option>
+          <option value="pristine">Pristine (+50% value, +35% yield, -20% grow time)</option>
+        </select>
+      </div>
+      <div class="control">
+        <fieldset>
+          <legend>Seasons (toggle)</legend>
+          <div class="season-chips" id="seasonChips"></div>
+        </fieldset>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="cropTable">
+        <thead>
+          <tr>
+            <th data-key="crop">Crop <span class="sort-indicator">⇅</span></th>
+            <th data-key="seasons">Seasons <span class="sort-indicator">⇅</span></th>
+            <th data-key="seedCost">Seed Cost <span class="sort-indicator">⇅</span></th>
+            <th data-key="value">Value <span class="sort-indicator">⇅</span></th>
+            <th data-key="growTime">Grow Time <span class="sort-indicator">⇅</span></th>
+            <th data-key="avgYield">Avg Yield <span class="sort-indicator">⇅</span></th>
+            <th data-key="profitPerDay">Profit/Day <span class="sort-indicator">⇅</span></th>
+            <th data-key="seasonProfit">Season Profit <span class="sort-indicator">⇅</span></th>
+            <th data-key="seasonProfitTotal">Total Profit <span class="sort-indicator">⇅</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows will be injected here by main.js -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footer">Tip: combine filters (e.g., Summer + profit ≥ 10 + grow ≤ 6) to surface fast, lucrative crops.
+    </div>
+    <div class="footer" id="dataStatus" style="font-size: 0.85em; color: #666; margin-top: 10px;"></div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/api-client.js"></script>
+  <script src="js/visit-banner.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/site-footer.js"></script>
+  <script src="js/storage-notice.js"></script>
+</body>
+
+</html>

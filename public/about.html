@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About & FAQ | Sunlit Valley</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .about-content { max-width: 800px; }
+    .faq-item { margin-bottom: 20px; }
+    .faq-item h3 { margin: 12px 0 6px; color: var(--text); }
+    .faq-item p { margin: 0; color: var(--muted); line-height: 1.6; }
+    .code-block { background: var(--card); padding: 12px; border-radius: 8px; margin: 8px 0; font-family: monospace; font-size: 12px; overflow-x: auto; }
+    .privacy-callout {
+      margin: 10px 0 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--accent-2, #5bd68d);
+      border-radius: 10px;
+      background: rgba(91, 214, 141, 0.12);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .privacy-callout strong {
+      color: var(--accent-2, #5bd68d);
+    }
+  </style>
+</head>
+<body>
+  <div class="shell about-content">
+    <h1>About Sunlit Valley</h1>
+    <p>A farming planner and processor calculator for the Sunlit Valley modpack.</p>
+
+    <div class="nav" id="nav"></div>
+
+    <h2 style="margin-top: 32px;">What is this site?</h2>
+    <p>This is a crop and processor guide to help you optimize farm layouts and processing chains in Sunlit Valley. Sort by profit, grow time, or season to find the best crops for your goals.</p>
+
+    <h2>How is Profit / Day calculated?</h2>
+    <p><strong>Planner:</strong> Profit / Day = (Base Sell Price − Seed Cost) / Grow Days</p>
+    <p><strong>Processors:</strong> Profit / Day = (Output Price − Input Price) / Processing Days</p>
+
+    <h2>What do the columns mean?</h2>
+    <div class="faq-item">
+      <h3>Seed Cost</h3>
+      <p>Cost to plant one seed. Subtracted from sell price to get profit.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Base Value (sell)</h3>
+      <p>What an unprocessed crop sells for at base quality. Processors increase this.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Grow Days</h3>
+      <p>Days for a crop to mature in the growing season.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Avg Yield</h3>
+      <p>Average number of items produced per harvest (some crops drop multiples).</p>
+    </div>
+    <div class="faq-item">
+      <h3>Profit / Season (per plot)</h3>
+      <p>Total profit from one plot over the season: (Profit / Day) × Season Days</p>
+    </div>
+    <div class="faq-item">
+      <h3>Profit / Season (all plots)</h3>
+      <p>Total profit across all plots: (Profit / Season per plot) × Number of Plots</p>
+    </div>
+
+    <h2>How do I use the Favorites feature?</h2>
+    <p>Click the ★ icon next to a crop name to bookmark it. Your favorites are saved locally and persist across sessions.</p>
+
+    <h2 id="privacy-visits">What data is stored for visits and caching?</h2>
+    <div class="privacy-callout">
+      <strong>Important:</strong> Sunlit Valley stores only minimal, anonymous data for core features and aggregate visit totals.
+    </div>
+    <p>This site stores favorites in your browser (local storage), uses a short session flag so the notice is not repeatedly shown, and sets an anonymous visitor ID cookie to count daily/all-time unique visits.</p>
+    <p>No personal information is collected, and visit totals are used only for aggregate traffic counts displayed on the site.</p>
+
+    <h2>Why are some processor rows blank?</h2>
+    <p>Some crops don't have complete processor data (e.g., Salt in pickling). Blank cells show missing values; future updates will fill them in.</p>
+
+    <h2>How often is data updated?</h2>
+    <p>Data is updated when possible. This is a community passion project maintained in my free time, so updates may be sporadic. Check the footer for the last data update date. For the most current modpack data, see the <a href="#" id="modpack-link">modpack page</a>.</p>
+    <p><em>I will update this site if and when I can—thank you for your patience!</em></p>
+
+    <h2>Can I print or export this?</h2>
+    <p>Yes! Use your browser's print function (Ctrl+P or Cmd+P) to print a stripped-down table. Or copy filtered rows and paste into a spreadsheet.</p>
+
+    <h2>Found a bug or have feedback?</h2>
+    <p>See the footer for feedback links (Discord, GitHub, etc.). Community contributions help keep data accurate.</p>
+
+    <div class="footer" style="margin-top: 32px;">Last updated: <span id="update-date">—</span></div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/visit-banner.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/site-footer.js"></script>
+  <script src="js/storage-notice.js"></script>
+  <script>
+    const { processorsList } = window.sunlitData;
+    const { renderNav } = window.siteUtils;
+    
+    renderNav(processorsList, 'about');
+    
+    // Update the modpack link
+    if (window.sunlitData && window.sunlitData.modpackUrl) {
+      document.getElementById('modpack-link').href = window.sunlitData.modpackUrl;
+      document.getElementById('modpack-link').target = '_blank';
+    }
+    
+    // Show last update date
+    if (window.sunlitData && window.sunlitData.dataLastUpdated) {
+      document.getElementById('update-date').textContent = window.sunlitData.dataLastUpdated;
+    }
+  </script>
+</body>
+</html>

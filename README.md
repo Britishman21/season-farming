@@ -1,109 +1,113 @@
 # Sunlit Valley Crop Planner
 
-A comprehensive crop planning tool for the Sunlit Valley Minecraft modpack, helping players optimize their farming strategy through intelligent filtering and profit calculations.
+A full-stack farming optimization tool for the Society: Sunlit Valley modpack.
 
-Host this tool on your own server or GitHub Pages to provide your community with an easy-to-use farming calculator!
+## 📁 Project Structure
 
-## 🌾 Features
+```
+sunlitvally(original)/
+├── public/                    # Frontend website files
+│   ├── index.html            # Main seasonal planner
+│   ├── about.html            # About & FAQ page
+│   ├── process-*.html        # Processor recipe pages
+│   ├── css/
+│   │   └── styles.css        # Main stylesheet
+│   └── js/
+│       ├── config.js         # Configuration & static data
+│       ├── api-client.js     # API communication
+│       ├── utils.js          # Helper functions
+│       ├── site-footer.js    # Footer & navigation
+│       └── storage-notice.js # Local storage management
+├── server/                    # Backend API
+│   ├── server.js             # Express entry point
+│   ├── db.js                 # Database connection
+│   ├── package.json          # Node dependencies
+│   ├── .env                  # Environment variables
+│   ├── setup-db.sql          # Database initialization
+│   ├── create-user.sql       # Optional MySQL user setup
+│   ├── README.md             # API documentation
+│   ├── DATABASE_SETUP.md     # Database guide
+│   └── routes/               # API endpoints
+├── docs/                      # Documentation
+│   ├── QUICKSTART_SETUP.md   # Setup instructions
+│   ├── API_REFERENCE.md      # API documentation
+│   ├── DEBUGGING.md          # Troubleshooting guide
+│   └── DATA_VERIFICATION_REPORT.md # Data audit
+└── README.md                 # This file
+```
 
-- **Smart Filtering**: Filter crops by season, profit margins, and grow time
-- **Profit Calculator**: Real-time profit calculations with configurable parameters
-- **Processing Tools**: Dedicated calculators for:
-  - Pickling
-  - Preserving
-  - Dehydrator processing
-- **Seasonal Planning**: View crops available by Spring, Summer, Autumn, and Winter
-- **Fertilizer Support**: Calculate yields with different fertilizer types:
-  - Weak Fertilizer
-  - Strong Fertilizer
-  - Hyper Fertilizer
-  - Bountiful Fertilizer
-- **Customizable Parameters**:
-  - Season length (days)
-  - Available plots/tiles
-  - Maximum grow time
-  - Seed cost inclusion
-- **Favorites System**: Save your preferred crops locally (no tracking or analytics)
-- **Sortable Tables**: Click column headers to sort by any metric
-- **Profit Per Day (P/D)**: Advanced metric showing daily profit potential
+## 🚀 Quick Start
 
-## 📊 Crop Metrics
+### Backend Setup
+```bash
+cd server
+npm install
+npm start
+# Runs on localhost:3001
+```
 
-Each crop displays:
-- **Rarity**: Star rating system
-- **Seasons**: Which seasons the crop grows in
-- **Quantity**: Seeds needed
-- **Value**: Base sell price
-- **Grow Time**: Days to maturity
-- **Base Yield**: Initial harvest amount
-- **Harvests**: Number of harvests per season
-- **Profit/Day**: Daily profit calculation
-- **Total Profit**: Maximum profit per season
-- **Scaled Profit**: Based on available plots
+### Frontend Setup
+```bash
+# Option 1: Python
+cd public
+python -m http.server 5500
 
-## 🚀 Installation & Hosting
+# Option 2: Node.js
+npm install -g http-server
+http-server public -p 5500
+```
 
-### Option 1: Self-Host
-1. Clone or download this repository
-2. Upload files to your web server
-3. Ensure your server supports static HTML/CSS/JavaScript
-4. Access via your domain or server IP
+Visit `http://localhost:5500` to start planning! 📊
 
-### Option 2: Local Development
-1. Clone the repository
-2. Open `index.html` in your web browser
-3. No server required for basic functionality
+## 📚 Documentation
 
-## 📖 How to Use
+- **[QUICKSTART_SETUP.md](docs/QUICKSTART_SETUP.md)** - Complete setup guide (5-12 minutes)
+- **[DATABASE_SETUP.md](server/DATABASE_SETUP.md)** - Database configuration options
+- **[API_REFERENCE.md](docs/API_REFERENCE.md)** - API endpoint documentation
+- **[DEBUGGING.md](docs/DEBUGGING.md)** - Troubleshooting & common issues
+- **[DATA_VERIFICATION_REPORT.md](docs/DATA_VERIFICATION_REPORT.md)** - Data accuracy audit
 
-1. Open the planner in your browser
-2. Configure your farm parameters:
-   - Set season length
-   - Enter available plots/tiles
-   - Choose fertilizer type
-3. Apply filters to find optimal crops
-4. Sort by profit, grow time, or value
-5. Save favorites for quick reference
+## ✨ Features
 
-## 🧮 Processing Calculators
+✅ **47 Official Crops** - All verified against official wiki
+✅ **Real-time Profit Calculator** - Sort by profitability, grow time, season
+✅ **Processor Recipes** - Pickling, Preserving, Dehydrator optimization  
+✅ **Smart API** - Real-time database sync, graceful fallback
+✅ **Responsive Design** - Works on desktop and mobile
+✅ **Local Storage** - Remember your favorite crops and filters
+✅ **No Database Required** - Works with static fallback data
 
-Navigate to specialized processing tools to calculate profits from:
-- **Pickling**: Preserve vegetables and increase value All data stays on the user's device.
+## 🔧 Tech Stack
 
-## 🛠️ Customization
+**Frontend:** Vanilla HTML, CSS, JavaScript (no dependencies!)
+**Backend:** Node.js, Express.js
+**Database:** MySQL 5.7+
+**Caching:** Browser localStorage + 5-minute API cache
 
-Feel free to modify the crop data, styling, or functionality to match your server's specific modpack configuration or branding.
+## 📊 Data
 
-## 📄 License
+All crop data is verified against the official sources:
+- **Official Wiki**: https://sunlitvalley.miraheze.org/wiki/Crops
+- **GitHub Modpack**: https://github.com/Chakyl/society-sunlit-valley
+- **Last Updated:** January 31, 2026
 
-Free to use, modify, and distribute. Credit appreciated but not required.
+## 🐛 Troubleshooting
 
-## 👤 Credits
+See [DEBUGGING.md](docs/DEBUGGING.md) for common issues.
 
-Made with care by **British_man21**
+Common problems:
+- **Port already in use** → Kill existing process or use different port
+- **MySQL connection failed** → Check `.env` credentials
+- **Crops not loading** → Check browser console (F12) for errors
 
-## 🌐 Pages Included
+## 📝 License
 
-- **index.html** - Main seasonal crop planner
-- **process-pickling.html** - Pickling calculator
-- **process-preserving.html** - Preserving calculator
-- **process-dehydrator.html** - Dehydrator calculator
-- **about.html** - About & FAQ page
+Community project for Society: Sunlit Valley modpack.
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to fork and submit pull requests.
-- Use the "Include Seed Cost" option for accurate profit margins
-- Check processing calculators for additional profit opportunities
-
-## 🔒 Privacy
-
-This site uses browser local storage to save your favorite crops. **No tracking or analytics are used.**
-
-## 👤 Credits
-
-Made with care by **British_man21**
+Data corrections welcome! Check current accuracy in [DATA_VERIFICATION_REPORT.md](docs/DATA_VERIFICATION_REPORT.md).
 
 ---
 
-*Filter, plan, and profit - optimize your Sunlit Valley farming operation today!*
+**Version:** 2.0 | **Last Updated:** February 21, 2026
