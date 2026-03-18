@@ -47,7 +47,7 @@ Each crop displays:
 1. Fork this repository
 2. Go to Settings → Pages
 3. Select main branch as source
-4. Your site will be live at `https://yourusername.github.io/repository-name/`
+4. Your site will be live at `https://Britishman21.github.io/repository-name/`
 
 ### Option 2: Self-Host
 1. Clone or download this repository
