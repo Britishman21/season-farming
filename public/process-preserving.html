@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sunlit Valley | Preserving</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <h1>Processor: Preserving</h1>
+    <p>Preserving outputs with profit/day and cycle length filters.</p>
+
+    <div class="nav" id="nav"></div>
+
+    <div class="controls">
+      <div class="control">
+        <label for="search">Search crop</label>
+        <input id="search" type="search" placeholder="e.g. Beetroot, Tomato" />
+      </div>
+      <div class="control">
+        <label for="maxDays">Max days</label>
+        <input id="maxDays" type="number" min="0" step="0.1" value="0" />
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th data-key="crop">Crop <span class="sort-indicator">⇅</span></th>
+            <th data-key="days">Days <span class="sort-indicator">⇅</span></th>
+            <th data-key="startPrice">Start Price <span class="sort-indicator">⇅</span></th>
+            <th data-key="price">Price <span class="sort-indicator">⇅</span></th>
+            <th data-key="profit">Profit <span class="sort-indicator">⇅</span></th>
+            <th data-key="profitPerDay">Profit / Day <span class="sort-indicator">⇅</span></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="footer">Data is local; adjust filters to spotlight best preserving targets.</div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/api-client.js"></script>
+  <script src="js/visit-banner.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/site-footer.js"></script>
+  <script src="js/storage-notice.js"></script>
+  <script>
+    const { processors, processorsList } = window.sunlitData;
+    const { isNumber, fmt, renderNav } = window.siteUtils;
+    let rows = Array.isArray(processors.preserving) ? [...processors.preserving] : [];
+
+    const state = {
+      search: '',
+      maxDays: 0,
+      sortBy: 'profitPerDay',
+      sortDir: 'desc',
+    };
+
+    const tbody = document.querySelector('#dataTable tbody');
+    const footer = document.querySelector('.footer');
+
+    function parseDayLimit(value) {
+      const normalized = String(value ?? '').trim().replace(',', '.');
+      const num = Number(normalized);
+      return Number.isFinite(num) && num > 0 ? num : 0;
+    }
+
+    function mapProcessorRow(row) {
+      return {
+        crop: row.crop_name,
+        days: Number(row.processing_days),
+        startPrice: Number(row.crop_base_value),
+        price: Number(row.output_value),
+        profit: Number(row.profit),
+        profitPerDay: Number(row.profit_per_day),
+      };
+    }
+
+    async function loadRows() {
+      const apiEnabled = !window.sunlitData || window.sunlitData.apiEnabled !== false;
+      if (apiEnabled && window.sunlitAPI && typeof window.sunlitAPI.getProcessorRecipes === 'function') {
+        try {
+          const apiRows = await window.sunlitAPI.getProcessorRecipes('preserving');
+          if (Array.isArray(apiRows) && apiRows.length > 0) {
+            rows = apiRows.map(mapProcessorRow);
+            if (footer) footer.textContent = 'Data source: API';
+            return;
+          }
+        } catch (error) {
+          console.error('Failed to load preserving API data:', error);
+        }
+      }
+
+      if (footer) {
+        footer.textContent = rows.length
+          ? 'Data source: Static fallback'
+          : 'No processor data available.';
+      }
+    }
+
+    function updateSortIndicators() {
+      document.querySelectorAll('th[data-key]').forEach(th => {
+        const indicator = th.querySelector('.sort-indicator');
+        const isActive = th.dataset.key === state.sortBy;
+        th.classList.toggle('sort-active', isActive);
+        if (indicator) indicator.textContent = isActive ? (state.sortDir === 'asc' ? '▲' : '▼') : '⇅';
+      });
+    }
+
+    function renderTable() {
+      const filtered = rows.filter(r => {
+        const matchesSearch = String(r.crop || '').toLowerCase().includes(state.search.toLowerCase());
+        const days = Number(r.days);
+        const matchesDays = state.maxDays > 0 ? (Number.isFinite(days) && days <= state.maxDays) : true;
+        return matchesSearch && matchesDays;
+      });
+
+      filtered.sort((a, b) => {
+        const dir = state.sortDir === 'asc' ? 1 : -1;
+        const aVal = a[state.sortBy];
+        const bVal = b[state.sortBy];
+        if (isNumber(aVal) && isNumber(bVal)) return (aVal - bVal) * dir;
+        return String(aVal).localeCompare(String(bVal)) * dir;
+      });
+
+      const rowsHtml = filtered.map(r => {
+        const profitClass = isNumber(r.profitPerDay)
+          ? r.profitPerDay >= 50 ? 'pill tag-gold' : r.profitPerDay < 0 ? 'pill tag-red' : 'pill tag-green'
+          : 'pill';
+        const profitVal = isNumber(r.profitPerDay) ? fmt(r.profitPerDay) : '—';
+        const daysClass = isNumber(r.days) && r.days <= 1 ? 'pill tag-green' : 'pill';
+        return `<tr>
+          <td><strong>${r.crop}</strong></td>
+          <td><span class="${daysClass}"><span>Days</span>${isNumber(r.days) ? fmt(r.days) : '—'}</span></td>
+          <td class="fade">${fmt(r.startPrice)}</td>
+          <td class="fade">${fmt(r.price)}</td>
+          <td class="${isNumber(r.profit) && r.profit < 0 ? 'tag-red' : 'fade'}">${fmt(r.profit)}</td>
+          <td><span class="${profitClass}"><span>P/D</span>${profitVal}</span></td>
+        </tr>`;
+      }).join('');
+
+      tbody.innerHTML = rowsHtml || '<tr><td colspan="6" class="fade">No rows match the filters.</td></tr>';
+      updateSortIndicators();
+
+    }
+
+    function attachSortHandlers() {
+      document.querySelectorAll('th[data-key]').forEach(th => {
+        th.addEventListener('click', () => {
+          const key = th.dataset.key;
+          if (state.sortBy === key) {
+            state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+          } else {
+            state.sortBy = key;
+            state.sortDir = key === 'crop' ? 'asc' : 'desc';
+          }
+          renderTable();
+        });
+      });
+    }
+
+    function initControls() {
+      document.getElementById('search').addEventListener('input', e => { state.search = e.target.value; renderTable(); });
+      document.getElementById('maxDays').addEventListener('input', e => { state.maxDays = parseDayLimit(e.target.value); renderTable(); });
+    }
+
+    async function initPage() {
+      renderNav(processorsList, 'preserving');
+      await loadRows();
+      attachSortHandlers();
+      initControls();
+      renderTable();
+    }
+
+    initPage();
+  </script>
+</body>
+</html>
