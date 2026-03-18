@@ -43,19 +43,13 @@ Each crop displays:
 
 ## 🚀 Installation & Hosting
 
-### Option 1: GitHub Pages (Free & Easy)
-1. Fork this repository
-2. Go to Settings → Pages
-3. Select main branch as source
-4. Your site will be live at `https://Britishman21.github.io/repository-name/`
-
-### Option 2: Self-Host
+### Option 1: Self-Host
 1. Clone or download this repository
 2. Upload files to your web server
 3. Ensure your server supports static HTML/CSS/JavaScript
 4. Access via your domain or server IP
 
-### Option 3: Local Development
+### Option 2: Local Development
 1. Clone the repository
 2. Open `index.html` in your web browser
 3. No server required for basic functionality
